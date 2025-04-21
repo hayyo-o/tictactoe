@@ -4,21 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="4b38934d-3243-4f00-bd06-c4b30604fa62" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/api/pom.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/api/src/main/java/ServerMessageBuilder.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/api/src/main/java/enums/Api.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/api/src/main/java/enums/ServerMessages.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/server/src/main/java/serverController/Connection.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/encodings.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/encodings.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/pom.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/server/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/server/pom.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/server/src/main/java/ClientHandler.java" beforeDir="false" afterPath="$PROJECT_DIR$/server/src/main/java/serverController/ClientHandler.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/server/src/main/java/GameManager.java" beforeDir="false" afterPath="$PROJECT_DIR$/server/src/main/java/serverController/GameManager.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/server/src/main/java/Server.java" beforeDir="false" afterPath="$PROJECT_DIR$/server/src/main/java/serverController/Server.java" afterDir="false" />
-    </list>
+    <list default="true" id="4b38934d-3243-4f00-bd06-c4b30604fa62" name="Changes" comment="Server start of basic logic" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -40,6 +26,18 @@
     </option>
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
+  <component name="GitHubPullRequestSearchHistory"><![CDATA[{
+  "lastFilter": {
+    "state": "OPEN",
+    "assignee": "vojtechanton"
+  }
+}]]></component>
+  <component name="GithubPullRequestsUISettings"><![CDATA[{
+  "selectedUrlAndAccountId": {
+    "url": "https://github.com/hayyo-o/tictactoe.git",
+    "accountId": "65c56c0a-b107-4148-9be0-57515d9e1cbd"
+  }
+}]]></component>
   <component name="ProblemsViewState">
     <option name="selectedTabId" value="CurrentFile" />
   </component>
@@ -111,8 +109,33 @@
       <option name="presentableId" value="Default" />
       <updated>1745155401278</updated>
       <workItem from="1745164623167" duration="872000" />
-      <workItem from="1745213454814" duration="4219000" />
+      <workItem from="1745213454814" duration="7703000" />
     </task>
+    <task id="LOCAL-00001" summary="Setting files for server">
+      <option name="closed" value="true" />
+      <created>1745222175454</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL-00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1745222175454</updated>
+    </task>
+    <task id="LOCAL-00002" summary="Message api basic structure">
+      <option name="closed" value="true" />
+      <created>1745222205606</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1745222205606</updated>
+    </task>
+    <task id="LOCAL-00003" summary="Server start of basic logic">
+      <option name="closed" value="true" />
+      <created>1745222234127</created>
+      <option name="number" value="00003" />
+      <option name="presentableId" value="LOCAL-00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1745222234127</updated>
+    </task>
+    <option name="localTasksCounter" value="4" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -128,5 +151,11 @@
         </entry>
       </map>
     </option>
+  </component>
+  <component name="VcsManagerConfiguration">
+    <MESSAGE value="Setting files for server" />
+    <MESSAGE value="Message api basic structure" />
+    <MESSAGE value="Server start of basic logic" />
+    <option name="LAST_COMMIT_MESSAGE" value="Server start of basic logic" />
   </component>
 </project>

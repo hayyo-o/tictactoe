@@ -1,0 +1,189 @@
+package serverController;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import serverEnumUtils.ServerMessageBuilder;
+import stateEnum.State;
+
+import java.util.HashSet;
+import java.util.Set;
+import java.util.concurrent.ThreadLocalRandom;
+
+public class GameManager implements Runnable {
+    private static final Logger log = LoggerFactory.getLogger(GameManager.class);
+
+    private Connection playerCross;
+    private Connection playerCircle;
+
+    private boolean crossReady = false;
+    private boolean circleReady = false;
+
+    private int n = 3;
+    private State[][] board = new State[n][n];
+
+    // ----------------------------------------- THREADING DANGER TODO Sync and stuff
+    private int moveCounter = 0;
+    private boolean crossMove = true;
+    private final Object lock = new Object();
+    private boolean wait = true;
+    boolean gameRunning = true;
+    // -----------------------------------------
+
+    public GameManager(Connection player1, Connection player2) {
+        int random = ThreadLocalRandom.current().nextInt();
+
+        log.info("Designating states to players");
+        if(random % 2 == 0) {
+            this.playerCross = player1;
+            this.playerCircle = player2;
+        } else {
+            this.playerCross = player2;
+            this.playerCircle = player1;
+        }
+
+        for(int i = 0; i < 3; i++) {
+            for(int j = 0; j < 3; j++) {
+                board[i][j] = State.BLANK;
+            }
+        }
+
+        log.debug("Sending start messages to players");
+        String startMessage = ServerMessageBuilder.start(playerCross.getName(), playerCircle.getName());
+        playerCross.sendMessage(startMessage);
+        playerCircle.sendMessage(startMessage);
+    }
+
+    //https://stackoverflow.com/questions/1056316/algorithm-for-determining-tic-tac-toe-game-over
+    private State move(int x, int y, State s) {
+        if(board[x][y] == State.BLANK) {
+            board[x][y] = s;
+        }
+        moveCounter++;
+
+        for(int i = 0; i < n; i++) {
+            if(board[x][i] != s)
+                break;
+            if(i == n-1) {
+                return s;
+            }
+        }
+        for(int i = 0; i < n; i++) {
+            if(board[i][y] != s)
+                break;
+            if(i == n-1) {
+                return s;
+            }
+        }
+
+        if(x == y) {
+            for(int i = 0; i < n; i++) {
+                if(board[i][i] != s)
+                    break;
+                if(i == n-1) {
+                    return s;
+                }
+            }
+        }
+
+        if(x+y == n - 1) {
+            for(int i = 0; i < n; i++) {
+                if(board[i][(n-1)-i] != s)
+                    break;
+                if(i == n-1) {
+                    return s;
+                }
+            }
+        }
+
+        return null;
+    }
+
+    public void playerMove(Connection player, int x, int y) {
+        synchronized (lock) {
+        if(x >= n || y >= n || x < 0 || y < 0) {
+            log.error("Invalid move");
+            player.sendMessage(ServerMessageBuilder.error("Invalid position"));
+            return;
+        }
+        if(player == playerCross && crossMove == true) {
+            playerCross.sendMessage(ServerMessageBuilder.move(playerCross.getName(), x, y));
+            if(move(x, y, State.X) != null) {
+                log.debug("Win of cross player {}",playerCross.getName());
+                String winMessage = ServerMessageBuilder.winner(playerCross.getName());
+                playerCross.sendMessage(winMessage);
+                playerCircle.sendMessage(winMessage);
+                gameRunning = false;
+            }
+        } else if (player == playerCircle && crossMove == false) {
+            playerCircle.sendMessage(ServerMessageBuilder.move(playerCircle.getName(), x, y));
+            if(move(x,y,State.O) != null) {
+                log.debug("Win of circle player {}",playerCircle.getName());
+                String winMessage = ServerMessageBuilder.winner(playerCircle.getName());
+                playerCross.sendMessage(winMessage);
+                playerCircle.sendMessage(winMessage);
+                gameRunning = false;
+            }
+        } else {
+            player.sendMessage(ServerMessageBuilder.error("Not your move"));
+        }
+
+        crossMove = !crossMove;
+        moveCounter += 1;
+        if(moveCounter == n * n - 1) {
+            log.debug("Draw");
+            String drawMessage = ServerMessageBuilder.draw();
+            playerCross.sendMessage(drawMessage);
+            playerCircle.sendMessage(drawMessage);
+            gameRunning = false;
+        }
+
+        wait = false;
+        lock.notifyAll();
+        }
+    }
+    public void playerReady(Connection player) {
+        synchronized (lock) {
+            if(player == playerCross) {
+                crossReady = true;
+            }
+            else {
+                circleReady = true;
+            }
+            if(crossReady && circleReady) {
+                log.info("Both players ready");
+                wait = false;
+                lock.notifyAll();
+            }
+        }
+    }
+
+    @Override
+    public void run() {
+        while(gameRunning) {
+            synchronized(lock) {
+                log.info("Waiting for player move");
+                while (wait) {
+                    try {
+                        lock.wait();
+                    } catch (InterruptedException e) {
+                        Thread.currentThread().interrupt();
+                        break;
+                    }
+                }
+                if (crossMove) {
+                    playerCross.sendMessage(ServerMessageBuilder.turn(playerCross.getName()));
+                } else {
+                    playerCircle.sendMessage(ServerMessageBuilder.turn(playerCircle.getName()));
+                }
+                wait = true;
+            }
+        }
+    }
+
+    public Set<Connection> getConnections() {
+        Set<Connection> connections = new HashSet<>();
+        connections.add(playerCross);
+        connections.add(playerCircle);
+        return connections;
+    }
+}

@@ -1,11 +1,9 @@
 package serverController;
 
-import ch.qos.logback.core.joran.sanity.Pair;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.*;
-import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.*;
 
@@ -13,8 +11,9 @@ public class Server {
     private static final Logger log = LoggerFactory.getLogger(Server.class);
 
     private final Deque<Connection> queue;
-    private final Set<Pair> pairs;
+    private final Set<GameManager> gameManagerSet;
 
+    private final Acceptor acceptor;
 
     public static void main(String[] args) {
         log.info("Server started");
@@ -31,6 +30,31 @@ public class Server {
 
     public Server() {
         queue = new LinkedList<Connection>();
-        pairs = new HashSet<Pair>();
+        gameManagerSet = new HashSet<GameManager>();
+
+        acceptor = new Acceptor(this);
     }
+
+    public void terminate() {
+        acceptor.terminate();
+        // TODO CLOSE ALL CONNECTIONS
+    }
+
+    public void addConnection(Socket clientSocket) {
+        log.info("Creating new connection with client");
+        Connection connection = new Connection(this, clientSocket);
+        synchronized (queue) {
+            queue.addLast(connection);
+        }
+    }
+
+    public void removeConnection(Connection connection) {
+        synchronized (queue) {
+            queue.remove(connection);
+        }
+    }
+
+
+
+
 }
