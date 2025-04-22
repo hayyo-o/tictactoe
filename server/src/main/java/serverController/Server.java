@@ -32,7 +32,7 @@ public class Server {
         queue = new LinkedList<Connection>();
         gameManagerSet = new HashSet<GameManager>();
 
-        acceptor = new Acceptor(this);
+        acceptor = new Acceptor(this, 8080);
     }
 
     public void terminate() {
@@ -43,6 +43,8 @@ public class Server {
     public void addConnection(Socket clientSocket) {
         log.info("Creating new connection with client");
         Connection connection = new Connection(this, clientSocket);
+        Thread connectionThread = new Thread(connection);
+        connectionThread.start();
         synchronized (queue) {
             queue.addLast(connection);
         }

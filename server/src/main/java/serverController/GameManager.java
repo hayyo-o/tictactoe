@@ -47,6 +47,9 @@ public class GameManager implements Runnable {
             }
         }
 
+        playerCross.setGameManager(this);
+        playerCircle.setGameManager(this);
+
         log.debug("Sending start messages to players");
         String startMessage = ServerMessageBuilder.start(playerCross.getName(), playerCircle.getName());
         playerCross.sendMessage(startMessage);
@@ -178,6 +181,8 @@ public class GameManager implements Runnable {
                 wait = true;
             }
         }
+        playerCross.setGameManager(null);
+        playerCircle.setGameManager(null);
     }
 
     public Set<Connection> getConnections() {

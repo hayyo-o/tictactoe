@@ -20,10 +20,13 @@ public class Connection implements Runnable {
 
     String username = null;
 
+    private boolean ready = false;
+    private GameManager gameManager;
+
     private ObjectOutputStream oos;
     private ObjectInputStream ois;
 
-    boolean keepAlive = true;
+    private volatile boolean keepAlive = true;
     private final Object lock = new Object();
 
     public Connection(Server server, Socket socket) {
@@ -57,7 +60,7 @@ public class Connection implements Runnable {
         log.info("Connection to " + socket.getInetAddress().getHostAddress() + ":" + socket.getPort());
         try {
             while(keepAlive) {
-                String incomingMessage = (String) ois.readObject();
+                String incomingMessage = ois.readObject().toString();
                 log.info("Received message {}", incomingMessage);
                 String[] command = incomingMessage.split(" ");
                 ClientMessages keyword = ClientEnumHandler.enumFinder(command[0]);
@@ -71,19 +74,22 @@ public class Connection implements Runnable {
                     username = command[1];
                     log.info("User {} logged in", username);
                     oos.writeObject(ServerMessageBuilder.welcome(username));
-                    // TODO add connection to queue
+                    ready = true;
                 } else if (keyword == ClientMessages.QUIT) {
                     log.info("User {} sent quit", username);
+                    ready = false;
                     keepAlive = false;
-                    oos.writeObject(ServerMessageBuilder.disconnect()); // TODO safely quit all
+                    oos.writeObject(ServerMessageBuilder.disconnect());
                 } else if (keyword == null) {
                     log.error("Incorrect incoming message");
                     oos.writeObject(ServerMessageBuilder.error("InvalidCommand"));
                 }
                 else if (keyword == ClientMessages.OK) {
-                    // TODO communication with GameManager
+                    log.info("User {} sent ok", username);
+                    gameManager.playerReady(this);
                 } else {
-                    // TODO communication with GameManager
+                    // TODO player sent some nonsense after MOVE keyword
+                    gameManager.playerMove(this, Integer.parseInt(command[1]), Integer.parseInt(command[2]));
                 }
 
             }
@@ -104,6 +110,14 @@ public class Connection implements Runnable {
         synchronized (lock) {
             keepAlive = false;
         }
+    }
+
+    public void terminate() {
+
+    }
+
+    public void setGameManager(GameManager gameManager) {
+        this.gameManager = gameManager;
     }
 
     public String getName() {

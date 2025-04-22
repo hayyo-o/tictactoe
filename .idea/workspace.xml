@@ -4,7 +4,14 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="4b38934d-3243-4f00-bd06-c4b30604fa62" name="Changes" comment="Server start of basic logic" />
+    <list default="true" id="4b38934d-3243-4f00-bd06-c4b30604fa62" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/server/src/main/java/serverController/Acceptor.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/client/src/main/java/Controller.java" beforeDir="false" afterPath="$PROJECT_DIR$/client/src/main/java/Controller.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/server/src/main/java/serverController/Connection.java" beforeDir="false" afterPath="$PROJECT_DIR$/server/src/main/java/serverController/Connection.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/server/src/main/java/serverController/GameManager.java" beforeDir="false" afterPath="$PROJECT_DIR$/server/src/main/java/serverController/GameManager.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/server/src/main/java/serverController/Server.java" beforeDir="false" afterPath="$PROJECT_DIR$/server/src/main/java/serverController/Server.java" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -13,7 +20,6 @@
   <component name="FileTemplateManagerImpl">
     <option name="RECENT_TEMPLATES">
       <list>
-        <option value="Enum" />
         <option value="Class" />
       </list>
     </option>
@@ -26,53 +32,49 @@
     </option>
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
-  <component name="GitHubPullRequestSearchHistory"><![CDATA[{
-  "lastFilter": {
-    "state": "OPEN",
-    "assignee": "vojtechanton"
-  }
-}]]></component>
-  <component name="GithubPullRequestsUISettings"><![CDATA[{
-  "selectedUrlAndAccountId": {
-    "url": "https://github.com/hayyo-o/tictactoe.git",
-    "accountId": "65c56c0a-b107-4148-9be0-57515d9e1cbd"
-  }
-}]]></component>
+  <component name="MarkdownSettingsMigration">
+    <option name="stateVersion" value="1" />
+  </component>
   <component name="ProblemsViewState">
     <option name="selectedTabId" value="CurrentFile" />
   </component>
-  <component name="ProjectColorInfo">{
-  &quot;associatedIndex&quot;: 4
-}</component>
   <component name="ProjectId" id="2vzkgMI6bhYFM0XtdNh5pTbUuHa" />
-  <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
+  <component name="ProjectLevelVcsManager" settingsEditedManually="true">
+    <ConfirmationsSetting value="2" id="Add" />
+  </component>
   <component name="ProjectViewState">
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
   <component name="PropertiesComponent"><![CDATA[{
   "keyToString": {
-    "Application.Api.executor": "Run",
+    "ASKED_ADD_EXTERNAL_FILES": "true",
+    "Application.Server.executor": "Run",
     "RunOnceActivity.OpenProjectViewOnStart": "true",
     "RunOnceActivity.ShowReadmeOnStart": "true",
+    "SHARE_PROJECT_CONFIGURATION_FILES": "true",
     "WebServerToolWindowFactoryState": "false",
     "git-widget-placeholder": "backend-1",
-    "kotlin-language-version-configured": "true",
-    "last_opened_file_path": "/home/vojta/JavaJungle/cviko6/4it353-2025ls-main/projects/sockets",
+    "jdk.selected.JAVA_MODULE": "ms-17",
+    "last_opened_file_path": "C:/Users/lyapi/IdeaProjects/piskvorky/client",
     "node.js.detected.package.eslint": "true",
     "node.js.detected.package.tslint": "true",
     "node.js.selected.package.eslint": "(autodetect)",
     "node.js.selected.package.tslint": "(autodetect)",
     "nodejs_package_manager_path": "npm",
+    "project.structure.last.edited": "SDKs",
+    "project.structure.proportion": "0.15",
+    "project.structure.side.proportion": "0.2",
+    "settings.editor.selected.configurable": "preferences.pluginManager",
     "vue.rearranger.settings.migration": "true"
   }
 }]]></component>
   <component name="RecentsManager">
-    <key name="MoveFile.RECENT_KEYS">
-      <recent name="$PROJECT_DIR$/server/src/main/java/serverController" />
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="C:\Users\lyapi\IdeaProjects\piskvorky\server" />
     </key>
   </component>
-  <component name="RunManager">
+  <component name="RunManager" selected="Application.Server">
     <configuration name="Api" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
       <option name="MAIN_CLASS_NAME" value="enums.Api" />
       <module name="api" />
@@ -86,8 +88,52 @@
         <option name="Make" enabled="true" />
       </method>
     </configuration>
+    <configuration name="Server" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
+      <option name="MAIN_CLASS_NAME" value="serverController.Server" />
+      <module name="server" />
+      <extension name="coverage">
+        <pattern>
+          <option name="PATTERN" value="serverController.*" />
+          <option name="ENABLED" value="true" />
+        </pattern>
+      </extension>
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="Run Client" type="MavenRunConfiguration" factoryName="Maven">
+      <MavenSettings>
+        <option name="myGeneralSettings" />
+        <option name="myRunnerSettings" />
+        <option name="myRunnerParameters">
+          <MavenRunnerParameters>
+            <option name="cmdOptions" />
+            <option name="profiles">
+              <set />
+            </option>
+            <option name="goals">
+              <list>
+                <option value="javafx:run" />
+              </list>
+            </option>
+            <option name="multimoduleDir" />
+            <option name="pomFileName" />
+            <option name="profilesMap">
+              <map />
+            </option>
+            <option name="projectsCmdOptionValues">
+              <list />
+            </option>
+            <option name="resolveToWorkspace" value="false" />
+            <option name="workingDirPath" value="$PROJECT_DIR$/client" />
+          </MavenRunnerParameters>
+        </option>
+      </MavenSettings>
+      <method v="2" />
+    </configuration>
     <recent_temporary>
       <list>
+        <item itemvalue="Application.Server" />
         <item itemvalue="Application.Api" />
       </list>
     </recent_temporary>
@@ -108,34 +154,10 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1745155401278</updated>
-      <workItem from="1745164623167" duration="872000" />
-      <workItem from="1745213454814" duration="7703000" />
+      <workItem from="1745155402914" duration="2712000" />
+      <workItem from="1745158146149" duration="419000" />
+      <workItem from="1745158584801" duration="5930000" />
     </task>
-    <task id="LOCAL-00001" summary="Setting files for server">
-      <option name="closed" value="true" />
-      <created>1745222175454</created>
-      <option name="number" value="00001" />
-      <option name="presentableId" value="LOCAL-00001" />
-      <option name="project" value="LOCAL" />
-      <updated>1745222175454</updated>
-    </task>
-    <task id="LOCAL-00002" summary="Message api basic structure">
-      <option name="closed" value="true" />
-      <created>1745222205606</created>
-      <option name="number" value="00002" />
-      <option name="presentableId" value="LOCAL-00002" />
-      <option name="project" value="LOCAL" />
-      <updated>1745222205606</updated>
-    </task>
-    <task id="LOCAL-00003" summary="Server start of basic logic">
-      <option name="closed" value="true" />
-      <created>1745222234127</created>
-      <option name="number" value="00003" />
-      <option name="presentableId" value="LOCAL-00003" />
-      <option name="project" value="LOCAL" />
-      <updated>1745222234127</updated>
-    </task>
-    <option name="localTasksCounter" value="4" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -146,16 +168,19 @@
       <map>
         <entry key="MAIN">
           <value>
-            <State />
+            <State>
+              <option name="CUSTOM_BOOLEAN_PROPERTIES">
+                <map>
+                  <entry key="Show.Git.Branches" value="false" />
+                </map>
+              </option>
+            </State>
           </value>
         </entry>
       </map>
     </option>
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="Setting files for server" />
-    <MESSAGE value="Message api basic structure" />
-    <MESSAGE value="Server start of basic logic" />
-    <option name="LAST_COMMIT_MESSAGE" value="Server start of basic logic" />
+    <option name="ADD_EXTERNAL_FILES_SILENTLY" value="true" />
   </component>
 </project>
