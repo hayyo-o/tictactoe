@@ -23,6 +23,9 @@ public class Connection implements Runnable {
     private ObjectOutputStream oos;
     private ObjectInputStream ois;
 
+    boolean keepAlive = true;
+    private final Object lock = new Object();
+
     public Connection(Server server, Socket socket) {
         this.server = server;
         this.socket = socket;
@@ -53,7 +56,6 @@ public class Connection implements Runnable {
     public void run() {
         log.info("Connection to " + socket.getInetAddress().getHostAddress() + ":" + socket.getPort());
         try {
-            boolean keepAlive = true;
             while(keepAlive) {
                 String incomingMessage = (String) ois.readObject();
                 log.info("Received message {}", incomingMessage);
@@ -89,6 +91,18 @@ public class Connection implements Runnable {
             log.error("Failed to read incoming object");
         } catch (ClassNotFoundException e) {
             log.error("Incoming object error", e);
+        } finally {
+            try {
+                socket.close();
+            } catch (IOException e) {
+                log.error("Failed to close socket");
+            }
+        }
+    }
+
+    public void close() {
+        synchronized (lock) {
+            keepAlive = false;
         }
     }
 
