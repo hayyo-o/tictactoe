@@ -2,29 +2,43 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<VBox xmlns="http://javafx.com/javafx" xmlns:fx="http://javafx.com/fxml" fx:controller="cz.tictactoe.client.Controller" spacing="10">
+<VBox xmlns="http://javafx.com/javafx" xmlns:fx="http://javafx.com/fxml" fx:controller="clientController.Controller" spacing="10">
     <StackPane fx:id="viewStack">
         <!-- Login screen -->
         <VBox fx:id="loginScreen" alignment="CENTER">
             <TextField fx:id="usernameField" promptText="Zadej uživatelské jméno"/>
             <Button text="Připojit se k serveru" onAction="#handleLogin"/>
         </VBox>
+
         <!-- Waiting screen -->
         <VBox fx:id="waitingScreen" alignment="CENTER" visible="false">
             <Label text="Čekání na druhého hráče..."/>
         </VBox>
+
         <!-- Game grid -->
-        <GridPane fx:id="gameGrid" visible="false">
-            <columnConstraints>
-                <ColumnConstraints minWidth="40" hgrow="ALWAYS"/>
-                <ColumnConstraints minWidth="40" hgrow="ALWAYS"/>
-                <ColumnConstraints minWidth="40" hgrow="ALWAYS"/>
-            </columnConstraints>
-            <rowConstraints>
-                <RowConstraints minHeight="40" vgrow="ALWAYS"/>
-                <RowConstraints minHeight="40" vgrow="ALWAYS"/>
-                <RowConstraints minHeight="40" vgrow="ALWAYS"/>
-            </rowConstraints>
-        </GridPane>
+        <VBox fx:id="gameScreen" alignment="CENTER" spacing="10" visible="false">
+
+            <HBox spacing="20" alignment="CENTER">
+                <Label fx:id="playerLabel" text="You: " />
+                <Label fx:id="opponentLabel" text="Opponent: " />
+            </HBox>
+
+            <Label fx:id="statusLabel" text="Status" />
+
+            <GridPane fx:id="gameGrid">
+                <columnConstraints>
+                    <ColumnConstraints minWidth="40" hgrow="ALWAYS"/>
+                    <ColumnConstraints minWidth="40" hgrow="ALWAYS"/>
+                    <ColumnConstraints minWidth="40" hgrow="ALWAYS"/>
+                </columnConstraints>
+                <rowConstraints>
+                    <RowConstraints minHeight="40" vgrow="ALWAYS"/>
+                    <RowConstraints minHeight="40" vgrow="ALWAYS"/>
+                    <RowConstraints minHeight="40" vgrow="ALWAYS"/>
+                </rowConstraints>
+            </GridPane>
+
+            <Button text="Odejít" onAction="#handleQuit"/>
+        </VBox>
     </StackPane>
 </VBox>

@@ -1,4 +1,4 @@
-package cz.tictactoe.client;
+package clientController;
 
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;

@@ -15,16 +15,15 @@ import java.net.Socket;
 public class Connection implements Runnable {
     private static final Logger log = LoggerFactory.getLogger(Connection.class);
 
-    private Server server;
-    private Socket socket;
+    private final Server server;
+    private final Socket socket;
 
-    String username = null;
+    private BufferedReader in;
+    private PrintWriter out;
 
+    private String username = null;
     private boolean ready = false;
     private GameManager gameManager;
-
-    private ObjectOutputStream oos;
-    private ObjectInputStream ois;
 
     private volatile boolean keepAlive = true;
     private final Object lock = new Object();
@@ -34,78 +33,76 @@ public class Connection implements Runnable {
         this.socket = socket;
 
         try {
-            log.info("Creating IOStreams");
-            oos = new ObjectOutputStream(socket.getOutputStream());
-            ois = new ObjectInputStream(socket.getInputStream());
+            log.info("Creating IOStreams (text-based)");
+            in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+            out = new PrintWriter(socket.getOutputStream(), true); // auto-flush
         } catch (IOException e) {
+            log.error("Failed to create IOStreams", e);
             try {
-                log.error("Failed to create IOStreams");
                 socket.close();
             } catch (IOException ex) {
-                log.error("Failed to close socket");
+                log.error("Failed to close socket", ex);
             }
         }
     }
     public void sendMessage(String message) {
-        try {
-            log.info("Sending message {}", message);
-            oos.writeObject(message);
-        } catch (IOException ex) {
-            log.error("Failed to send message through oos");
-        }
+        log.info("Sending message {}", message);
+        out.println(message);
     }
 
     @Override
     public void run() {
-        log.info("Connection to " + socket.getInetAddress().getHostAddress() + ":" + socket.getPort());
+        log.info("Connection to {}:{}", socket.getInetAddress().getHostAddress(), socket.getPort());
         try {
-            while(keepAlive) {
-                String incomingMessage = ois.readObject().toString();
-                log.info("Received message {}", incomingMessage);
+            String incomingMessage;
+            while (keepAlive && (incomingMessage = in.readLine()) != null) {
+                log.info("Received message: {}", incomingMessage);
                 String[] command = incomingMessage.split(" ");
                 ClientMessages keyword = ClientEnumHandler.enumFinder(command[0]);
 
-                if(command[0].equals("")) {
-                    command[0] = null;
-                }
-
-                if(keyword == ClientMessages.HELLO) {
-                    // TODO check for invalid usernames and duplicates
+                if (keyword == ClientMessages.HELLO) {
                     username = command[1];
                     log.info("User {} logged in", username);
-                    oos.writeObject(ServerMessageBuilder.welcome(username));
+                    sendMessage(ServerMessageBuilder.welcome(username));
                     ready = true;
+
                 } else if (keyword == ClientMessages.QUIT) {
-                    log.info("User {} sent quit", username);
+                    log.info("User {} sent QUIT", username);
                     ready = false;
-                    if(gameManager != null) {
+                    if (gameManager != null) {
                         gameManager.quit(this);
                     }
                     keepAlive = false;
-                    oos.writeObject(ServerMessageBuilder.disconnect());
+                    sendMessage(ServerMessageBuilder.disconnect());
+
                 } else if (keyword == null) {
                     log.error("Incorrect incoming message");
-                    oos.writeObject(ServerMessageBuilder.error("InvalidCommand"));
-                }
-                else if (keyword == ClientMessages.OK) {
-                    log.info("User {} sent ok", username);
-                    gameManager.playerReady(this);
-                } else {
-                    // TODO player sent some nonsense after MOVE keyword
-                    gameManager.playerMove(this, Integer.parseInt(command[1]), Integer.parseInt(command[2]));
-                }
+                    sendMessage(ServerMessageBuilder.error("InvalidCommand"));
 
+                } else if (keyword == ClientMessages.OK) {
+                    log.info("User {} sent OK", username);
+                    gameManager.playerReady(this);
+
+                } else if (keyword == ClientMessages.MOVE) {
+                    if (command.length < 3) {
+                        sendMessage(ServerMessageBuilder.error("InvalidMove"));
+                        continue;
+                    }
+                    int x = Integer.parseInt(command[1]);
+                    int y = Integer.parseInt(command[2]);
+                    log.debug("Move x=" +x + " y="+y);
+                    gameManager.playerMove(this, x, y);
+
+                } else {
+                    log.warn("Unknown command received: {}", command[0]);
+                    sendMessage(ServerMessageBuilder.error("InvalidCommand"));
+                }
             }
+
         } catch (IOException e) {
-            log.error("Failed to read incoming object");
-        } catch (ClassNotFoundException e) {
-            log.error("Incoming object error", e);
+            log.error("IOException during client communication", e);
         } finally {
-            try {
-                socket.close();
-            } catch (IOException e) {
-                log.error("Failed to close socket");
-            }
+            terminate();
         }
     }
 
@@ -118,8 +115,8 @@ public class Connection implements Runnable {
     public void terminate() {
         close();
         try {
-            if (ois != null) ois.close();
-            if (oos != null) oos.close();
+            if (in != null) in.close();
+            if (out != null) out.close();
             if (socket != null && !socket.isClosed()) socket.close();
         } catch (IOException e) {
             log.error("Error closing connection resources", e);
