@@ -14,6 +14,7 @@ public class GameManager implements Runnable {
 
     private Connection playerCross;
     private Connection playerCircle;
+    private Server server;
 
     private boolean crossReady = false;
     private boolean circleReady = false;
@@ -29,7 +30,8 @@ public class GameManager implements Runnable {
     boolean gameRunning = true;
     // -----------------------------------------
 
-    public GameManager(Connection player1, Connection player2) {
+    public GameManager(Connection player1, Connection player2, Server server) {
+        this.server = server;
         int random = ThreadLocalRandom.current().nextInt();
 
         log.info("Designating states to players");
@@ -131,7 +133,7 @@ public class GameManager implements Runnable {
         }
 
         crossMove = !crossMove;
-        moveCounter += 1;
+        //moveCounter += 1;
         if(moveCounter == n * n - 1) {
             log.debug("Draw");
             String drawMessage = ServerMessageBuilder.draw();
@@ -190,5 +192,33 @@ public class GameManager implements Runnable {
         connections.add(playerCross);
         connections.add(playerCircle);
         return connections;
+    }
+
+    public synchronized boolean isGameRunning() {
+        return gameRunning;
+    }
+
+    public synchronized void terminate() {
+        gameRunning = false;
+        synchronized (lock) {
+            wait = false;
+            lock.notifyAll();
+        }
+    }
+
+    public void quit(Connection player) {
+        log.info("User {} sent quit to GameManager", player.getName());
+        if(player == playerCross) {
+            playerCircle.sendMessage(ServerMessageBuilder.winner(playerCircle.getName()));
+            player.terminate();
+            server.addExistingConnection(playerCircle);
+            terminate();
+        }
+        else {
+            playerCross.sendMessage(ServerMessageBuilder.winner(playerCross.getName()));
+            player.terminate();
+            server.addExistingConnection(playerCross);
+            terminate();
+        }
     }
 }

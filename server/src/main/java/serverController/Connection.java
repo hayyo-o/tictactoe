@@ -78,6 +78,9 @@ public class Connection implements Runnable {
                 } else if (keyword == ClientMessages.QUIT) {
                     log.info("User {} sent quit", username);
                     ready = false;
+                    if(gameManager != null) {
+                        gameManager.quit(this);
+                    }
                     keepAlive = false;
                     oos.writeObject(ServerMessageBuilder.disconnect());
                 } else if (keyword == null) {
@@ -113,7 +116,14 @@ public class Connection implements Runnable {
     }
 
     public void terminate() {
-
+        close();
+        try {
+            if (ois != null) ois.close();
+            if (oos != null) oos.close();
+            if (socket != null && !socket.isClosed()) socket.close();
+        } catch (IOException e) {
+            log.error("Error closing connection resources", e);
+        }
     }
 
     public void setGameManager(GameManager gameManager) {
