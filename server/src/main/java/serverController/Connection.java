@@ -23,8 +23,8 @@ public class Connection implements Runnable {
     private boolean ready = false;
     private GameManager gameManager;
 
-    private ObjectOutputStream oos;
-    private ObjectInputStream ois;
+    private PrintWriter oos;
+    private BufferedReader ois;
 
     private volatile boolean keepAlive = true;
     private final Object lock = new Object();
@@ -35,8 +35,8 @@ public class Connection implements Runnable {
 
         try {
             log.info("Creating IOStreams");
-            oos = new ObjectOutputStream(socket.getOutputStream());
-            ois = new ObjectInputStream(socket.getInputStream());
+            oos = new PrintWriter(socket.getOutputStream(), true);
+            ois = new BufferedReader(new InputStreamReader(socket.getInputStream()));
         } catch (IOException e) {
             try {
                 log.error("Failed to create IOStreams");
@@ -47,12 +47,8 @@ public class Connection implements Runnable {
         }
     }
     public void sendMessage(String message) {
-        try {
-            log.info("Sending message {}", message);
-            oos.writeObject(message);
-        } catch (IOException ex) {
-            log.error("Failed to send message through oos");
-        }
+        log.info("Sending message {}", message);
+        oos.println(message);
     }
 
     @Override
@@ -60,7 +56,7 @@ public class Connection implements Runnable {
         log.info("Connection to " + socket.getInetAddress().getHostAddress() + ":" + socket.getPort());
         try {
             while(keepAlive) {
-                String incomingMessage = ois.readObject().toString();
+                String incomingMessage = ois.readLine();
                 log.info("Received message {}", incomingMessage);
                 String[] command = incomingMessage.split(" ");
                 ClientMessages keyword = ClientEnumHandler.enumFinder(command[0]);
@@ -73,7 +69,7 @@ public class Connection implements Runnable {
                     // TODO check for invalid usernames and duplicates
                     username = command[1];
                     log.info("User {} logged in", username);
-                    oos.writeObject(ServerMessageBuilder.welcome(username));
+                    oos.println(ServerMessageBuilder.welcome(username));
                     ready = true;
                 } else if (keyword == ClientMessages.QUIT) {
                     log.info("User {} sent quit", username);
@@ -82,10 +78,10 @@ public class Connection implements Runnable {
                         gameManager.quit(this);
                     }
                     keepAlive = false;
-                    oos.writeObject(ServerMessageBuilder.disconnect());
+                    oos.println(ServerMessageBuilder.disconnect());
                 } else if (keyword == null) {
                     log.error("Incorrect incoming message");
-                    oos.writeObject(ServerMessageBuilder.error("InvalidCommand"));
+                    oos.println(ServerMessageBuilder.error("InvalidCommand"));
                 }
                 else if (keyword == ClientMessages.OK) {
                     log.info("User {} sent ok", username);
@@ -98,8 +94,6 @@ public class Connection implements Runnable {
             }
         } catch (IOException e) {
             log.error("Failed to read incoming object");
-        } catch (ClassNotFoundException e) {
-            log.error("Incoming object error", e);
         } finally {
             try {
                 socket.close();

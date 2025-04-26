@@ -7,11 +7,11 @@
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
         <module name="server" />
+        <module name="client" />
+        <module name="api" />
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel>
-      <module name="api" target="21" />
-      <module name="client" target="1.5" />
       <module name="tictactoe" target="1.5" />
     </bytecodeTargetLevel>
   </component>
