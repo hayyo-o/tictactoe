@@ -56,6 +56,12 @@ public class GameManager implements Runnable {
         String startMessage = ServerMessageBuilder.start(playerCross.getName(), playerCircle.getName());
         playerCross.sendMessage(startMessage);
         playerCircle.sendMessage(startMessage);
+
+        if (crossMove) {
+            playerCross.sendMessage(ServerMessageBuilder.turn(playerCross.getName()));
+        } else {
+            playerCircle.sendMessage(ServerMessageBuilder.turn(playerCircle.getName()));
+        }
     }
 
     //https://stackoverflow.com/questions/1056316/algorithm-for-determining-tic-tac-toe-game-over
@@ -105,47 +111,53 @@ public class GameManager implements Runnable {
 
     public void playerMove(Connection player, int x, int y) {
         synchronized (lock) {
-        if(x >= n || y >= n || x < 0 || y < 0) {
-            log.error("Invalid move");
-            player.sendMessage(ServerMessageBuilder.error("Invalid position"));
-            return;
-        }
-        if(player == playerCross && crossMove == true) {
-            playerCross.sendMessage(ServerMessageBuilder.move(playerCross.getName(), x, y));
-            if(move(x, y, State.X) != null) {
-                log.debug("Win of cross player {}",playerCross.getName());
-                String winMessage = ServerMessageBuilder.winner(playerCross.getName());
-                playerCross.sendMessage(winMessage);
-                playerCircle.sendMessage(winMessage);
-                gameRunning = false;
+            if (x >= n || y >= n || x < 0 || y < 0) {
+                player.sendMessage(ServerMessageBuilder.error("Invalid position"));
+                return;
             }
-        } else if (player == playerCircle && crossMove == false) {
-            playerCircle.sendMessage(ServerMessageBuilder.move(playerCircle.getName(), x, y));
-            if(move(x,y,State.O) != null) {
-                log.debug("Win of circle player {}",playerCircle.getName());
-                String winMessage = ServerMessageBuilder.winner(playerCircle.getName());
-                playerCross.sendMessage(winMessage);
-                playerCircle.sendMessage(winMessage);
-                gameRunning = false;
+
+            if (board[x][y] != State.BLANK) {
+                player.sendMessage(ServerMessageBuilder.error("Cell already occupied"));
+                return;
             }
-        } else {
-            player.sendMessage(ServerMessageBuilder.error("Not your move"));
-        }
 
-        crossMove = !crossMove;
-        //moveCounter += 1;
-        if(moveCounter == n * n - 1) {
-            log.debug("Draw");
-            String drawMessage = ServerMessageBuilder.draw();
-            playerCross.sendMessage(drawMessage);
-            playerCircle.sendMessage(drawMessage);
-            gameRunning = false;
-        }
+            if ((player == playerCross && crossMove) || (player == playerCircle && !crossMove)) {
 
-        wait = false;
-        lock.notifyAll();
+                State symbol = (player == playerCross) ? State.X : State.O;
+                State winner = move(x, y, symbol);
+
+                // Send move first
+                sendMoveToBothPlayers(player.getName(), x, y);
+
+                // Winner check then
+                if (winner != null) {
+                    String winMessage = ServerMessageBuilder.winner(player.getName());
+                    playerCross.sendMessage(winMessage);
+                    playerCircle.sendMessage(winMessage);
+                    gameRunning = false;
+                } else if (moveCounter == n * n) {
+                    String drawMessage = ServerMessageBuilder.draw();
+                    playerCross.sendMessage(drawMessage);
+                    playerCircle.sendMessage(drawMessage);
+                    gameRunning = false;
+                } else {
+                    crossMove = !crossMove;
+                    wait = false;
+                    lock.notifyAll();
+                }
+
+            } else {
+                player.sendMessage(ServerMessageBuilder.error("Not your move"));
+            }
         }
     }
+
+    private void sendMoveToBothPlayers(String playerName, int x, int y) {
+        String moveMessage = ServerMessageBuilder.move(playerName, x, y);
+        playerCross.sendMessage(moveMessage);
+        playerCircle.sendMessage(moveMessage);
+    }
+
     public void playerReady(Connection player) {
         synchronized (lock) {
             if(player == playerCross) {
@@ -208,17 +220,13 @@ public class GameManager implements Runnable {
 
     public void quit(Connection player) {
         log.info("User {} sent quit to GameManager", player.getName());
-        if(player == playerCross) {
-            playerCircle.sendMessage(ServerMessageBuilder.winner(playerCircle.getName()));
-            player.terminate();
-            server.addExistingConnection(playerCircle);
-            terminate();
-        }
-        else {
-            playerCross.sendMessage(ServerMessageBuilder.winner(playerCross.getName()));
-            player.terminate();
-            server.addExistingConnection(playerCross);
-            terminate();
-        }
+
+        Connection otherPlayer = (player == playerCross) ? playerCircle : playerCross;
+
+        otherPlayer.sendMessage(ServerMessageBuilder.winner(otherPlayer.getName()));
+        player.terminate();
+        server.addExistingConnection(otherPlayer);
+        terminate();
     }
+
 }
