@@ -92,8 +92,30 @@ public class Server {
     }
     public Set<Connection> getQueue() {
         synchronized(queueLock) {
-            return new HashSet<>(queue);
+            HashSet<Connection> readyQueue = new HashSet<>(queue);
+            readyQueue.forEach(connection -> {
+                if(connection.getReady() == false) {
+                    readyQueue.remove(connection);
+                }
+            });
+            return readyQueue;
         }
+    }
+
+    public boolean nameExists(String name) {
+        Set<String> names = new HashSet<>();
+        synchronized(queueLock) {
+            for(Connection connection : queue) {
+                names.add(connection.getName());
+            }
+        }
+        synchronized(gameManagerSet) {
+            for(GameManager gameManager : gameManagerSet) {
+                gameManager.getConnections()
+                        .forEach(connection -> names.add(connection.getName()));
+            }
+        }
+        return names.contains(name);
     }
 
 

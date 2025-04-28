@@ -62,6 +62,11 @@ public class Connection implements Runnable {
 
                 if (keyword == ClientMessages.HELLO) {
                     username = command[1];
+                    if(server.nameExists(username)) {
+                        log.info("User {} already exists", username);
+                        sendMessage(ServerMessageBuilder.error("Invalid username"));
+                        continue;
+                    }
                     log.info("User {} logged in", username);
                     sendMessage(ServerMessageBuilder.welcome(username));
                     ready = true;
@@ -129,5 +134,9 @@ public class Connection implements Runnable {
 
     public String getName() {
         return username;
+    }
+
+    public boolean getReady() {
+        return ready;
     }
 }

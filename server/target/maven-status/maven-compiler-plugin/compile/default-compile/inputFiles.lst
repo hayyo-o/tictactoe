@@ -1,6 +1,6 @@
-C:\Users\lyapi\IdeaProjects\piskvorky\server\src\main\java\serverController\GameManager.java
-C:\Users\lyapi\IdeaProjects\piskvorky\server\src\main\java\serverController\Connection.java
-C:\Users\lyapi\IdeaProjects\piskvorky\server\src\main\java\stateEnum\State.java
-C:\Users\lyapi\IdeaProjects\piskvorky\server\src\main\java\serverController\Acceptor.java
-C:\Users\lyapi\IdeaProjects\piskvorky\server\src\main\java\serverController\MatchMaker.java
-C:\Users\lyapi\IdeaProjects\piskvorky\server\src\main\java\serverController\Server.java
+/home/vojta/tictactoe/server/src/main/java/serverController/Acceptor.java
+/home/vojta/tictactoe/server/src/main/java/stateEnum/State.java
+/home/vojta/tictactoe/server/src/main/java/serverController/Server.java
+/home/vojta/tictactoe/server/src/main/java/serverController/MatchMaker.java
+/home/vojta/tictactoe/server/src/main/java/serverController/GameManager.java
+/home/vojta/tictactoe/server/src/main/java/serverController/Connection.java
