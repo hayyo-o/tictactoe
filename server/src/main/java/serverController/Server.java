@@ -49,6 +49,9 @@ public class Server {
         while (iterator.hasNext()) {
             GameManager gameManager = iterator.next();
             if(!gameManager.isGameRunning()) {
+                for (Connection conn : gameManager.getConnections()) {
+                    conn.setGameManager(null);
+                }
                 iterator.remove();
             }
         }
@@ -74,6 +77,11 @@ public class Server {
         Connection connection = new Connection(this, clientSocket);
         Thread connectionThread = new Thread(connection);
         connectionThread.start();
+        /*synchronized (queue) {
+            queue.add(connection);
+        }*/
+    }
+    public void addAuthenticatedConnection(Connection connection) {
         synchronized (queue) {
             queue.add(connection);
         }
@@ -92,27 +100,39 @@ public class Server {
     }
     public Set<Connection> getQueue() {
         synchronized(queueLock) {
-            HashSet<Connection> readyQueue = new HashSet<>(queue);
-            readyQueue.forEach(connection -> {
-                if(connection.getReady() == false) {
-                    readyQueue.remove(connection);
-                }
-            });
+            HashSet<Connection> readyQueue = new HashSet<>();
+            for (Connection connection : queue) {
+            if (connection.getReady()) {
+                readyQueue.add(connection);
+            }
+        }
             return readyQueue;
         }
     }
 
     public boolean nameExists(String name) {
+        if (name == null) {
+            return false;
+        }
+
         Set<String> names = new HashSet<>();
         synchronized(queueLock) {
             for(Connection connection : queue) {
-                names.add(connection.getName());
+                String connectionName = connection.getName();
+                if (connectionName != null) {  // Only add non-null names
+                    names.add(connectionName);
+                }
             }
         }
         synchronized(gameManagerSet) {
             for(GameManager gameManager : gameManagerSet) {
                 gameManager.getConnections()
-                        .forEach(connection -> names.add(connection.getName()));
+                        .forEach(connection -> {
+                            String connectionName = connection.getName();
+                            if (connectionName != null) {
+                                names.add(connectionName);
+                            }
+                        });
             }
         }
         return names.contains(name);

@@ -221,12 +221,26 @@ public class GameManager implements Runnable {
     public void quit(Connection player) {
         log.info("User {} sent quit to GameManager", player.getName());
 
+        terminate();
+
         Connection otherPlayer = (player == playerCross) ? playerCircle : playerCross;
 
-        otherPlayer.sendMessage(ServerMessageBuilder.winner(otherPlayer.getName()));
+        playerCross.setGameManager(null);
+        playerCircle.setGameManager(null);
+
+        if (otherPlayer != null && otherPlayer.getReady()) {
+            otherPlayer.sendMessage(ServerMessageBuilder.winner(otherPlayer.getName()));
+            new Thread(() -> {
+                try {
+                    Thread.sleep(100);
+                    server.addExistingConnection(otherPlayer);
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                }
+            }).start();
+        }
+
         player.terminate();
-        server.addExistingConnection(otherPlayer);
-        terminate();
     }
 
 }

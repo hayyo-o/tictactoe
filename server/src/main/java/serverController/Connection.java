@@ -70,15 +70,21 @@ public class Connection implements Runnable {
                     log.info("User {} logged in", username);
                     sendMessage(ServerMessageBuilder.welcome(username));
                     ready = true;
-
+                    server.addAuthenticatedConnection(this);
                 } else if (keyword == ClientMessages.QUIT) {
                     log.info("User {} sent QUIT", username);
                     ready = false;
+                    keepAlive = false;
+
+                    sendMessage(ServerMessageBuilder.disconnect());
+
                     if (gameManager != null) {
                         gameManager.quit(this);
+                    } else {
+                        server.removeConnection(this);
                     }
-                    keepAlive = false;
-                    sendMessage(ServerMessageBuilder.disconnect());
+
+                    return;
 
                 } else if (keyword == null) {
                     log.error("Incorrect incoming message");
@@ -130,6 +136,10 @@ public class Connection implements Runnable {
 
     public void setGameManager(GameManager gameManager) {
         this.gameManager = gameManager;
+    }
+
+    public void resetForNewGame() {
+        this.gameManager = null;
     }
 
     public String getName() {
