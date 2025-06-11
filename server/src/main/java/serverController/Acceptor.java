@@ -7,17 +7,30 @@ import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 
+/**
+ * Listens for incoming client connections on a specified port
+ * and hands them off to the {@link Server}.
+ *
+ * <p>Runs in its own thread, continuously accepting new sockets until terminated.</p>
+ *
+ * @version 1.0
+ * @created April 2025
+ */
 public class Acceptor implements Runnable {
     private static final Logger log = LoggerFactory.getLogger(Acceptor.class);
 
     private Server server;
     private Thread thread;
     private volatile boolean keepAlive;
-
-
     private ServerSocket serverSocket;
     private int port;
 
+    /**
+     * Constructs and starts an Acceptor that listens on the given port.
+     *
+     * @param server the server instance to which new connections are added
+     * @param port   the TCP port to listen on
+     */
     public Acceptor(Server server, int port) {
         this.server = server;
         this.port = port;
@@ -28,7 +41,10 @@ public class Acceptor implements Runnable {
         thread.start();
     }
 
-
+    /**
+     * Main loop: opens the ServerSocket and accepts new client connections.
+     * Each accepted socket is passed to {@link Server#addConnection(Socket)}.
+     */
     @Override
     public void run() {
         log.info("Acceptor thread started");
@@ -50,22 +66,28 @@ public class Acceptor implements Runnable {
         log.info("Acceptor thread terminated");
     }
 
-    private void close() {
-        if(serverSocket == null) {
-            log.debug("Server socket is null, terminating Acceptor");
-        } else {
-            log.debug("Closing server socket and terminating Acceptor");
-            try {
-                serverSocket.close();
-            } catch(IOException e) {
-                log.debug("Error closing server socket", e);
-            }
-        }
-    }
-
+    /**
+     * Shuts down the acceptor: stops accepting and closes the server socket.
+     */
     public void terminate() {
         log.info("Terminating Acceptor");
         keepAlive = false;
         close();
+    }
+
+    /**
+     * Closes the ServerSocket if open.
+     */
+    private void close() {
+        if (serverSocket == null) {
+            log.debug("Server socket is null, nothing to close");
+        } else {
+            log.debug("Closing server socket");
+            try {
+                serverSocket.close();
+            } catch (IOException e) {
+                log.debug("Error closing server socket", e);
+            }
+        }
     }
 }

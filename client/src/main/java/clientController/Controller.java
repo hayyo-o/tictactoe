@@ -23,7 +23,6 @@ import org.slf4j.LoggerFactory;
  * The Controller class manages the user interface logic for the Tic Tac Toe client application.
  * It handles user login, game moves, communication with the server, and updating the game screen.
  *
- * This class is part of a networked desktop version of the Tic Tac Toe game.
  *
  * @author Pavel Liapin
  * @version 1.0
@@ -51,12 +50,20 @@ public class Controller {
     private String opponentSymbol;
     private boolean isMyTurn = false;
 
+    /**
+     * Initializes the controller after FXML loading.
+     * Sets up the empty game grid.
+     */
     @FXML
     public void initialize() {
         log.info("Initializing game grid");
         initializeGameGrid();
     }
 
+    /**
+     * Creates the 3×3 grid of buttons used for the Tic Tac Toe board.
+     * Each button, when clicked, will attempt to send a move to the server.
+     */
     private void initializeGameGrid() {
         gameGrid.getChildren().clear();
         for (int i = 0; i < 3; i++) {
@@ -71,6 +78,10 @@ public class Controller {
         }
     }
 
+    /**
+     * Handles the Login button click.
+     * Validates the username, connects to the server, sends HELLO, and processes the response.
+     */
     @FXML
     private void handleLogin() {
         username = usernameField.getText().trim();
@@ -122,6 +133,10 @@ public class Controller {
         }
     }
 
+    /**
+     * Handles the Quit button click.
+     * Sends QUIT, closes the socket, and resets the UI to the login screen.
+     */
     @FXML
     private void handleQuit() {
         try {
@@ -146,6 +161,10 @@ public class Controller {
         });
     }
 
+    /**
+     * Continuously listens for messages from the server and dispatches handling
+     * onto the JavaFX application thread when UI updates are needed.
+     */
     private void listenToServer() {
         try {
             String line;
@@ -221,6 +240,13 @@ public class Controller {
         }
     }
 
+    /**
+     * Marks the given move on the local game grid UI.
+     *
+     * @param player the player who made the move
+     * @param x      row index (0–2)
+     * @param y      column index (0–2)
+     */
     private void markMove(String player, int x, int y) {
         Button btn = getButtonAt(x, y);
         if (btn != null && btn.getText().isEmpty()) {
@@ -229,6 +255,13 @@ public class Controller {
         }
     }
 
+    /**
+     * Sends a move command to the server if it's the client's turn and the cell is empty.
+     *
+     * @param x   row index (0–2)
+     * @param y   column index (0–2)
+     * @param btn the UI button representing the cell
+     */
     private void makeMove(int x, int y, Button btn) {
         if (!btn.getText().isEmpty() || !isMyTurn) return;
 
@@ -236,11 +269,18 @@ public class Controller {
         log.info("Move sent: ({}, {})", x, y);
         isMyTurn = false;
         Platform.runLater(() -> {
-            setStatusLabel("Status: Opponent's turn");
+            setStatusLabel("Opponent's turn");
             gameGrid.setDisable(true);
         });
     }
 
+    /**
+     * Finds the button in the grid at the specified coordinates.
+     *
+     * @param row row index (0–2)
+     * @param col column index (0–2)
+     * @return the Button at that position, or {@code null} if none found
+     */
     private Button getButtonAt(int row, int col) {
         for (javafx.scene.Node node : gameGrid.getChildren()) {
             if (GridPane.getRowIndex(node) == row && GridPane.getColumnIndex(node) == col) {
@@ -250,12 +290,18 @@ public class Controller {
         return null;
     }
 
+    /**
+     * Switches the UI to the waiting‐for‐match screen.
+     */
     private void showWaitingScreen() {
         loginScreen.setVisible(false);
         waitingScreen.setVisible(true);
         gameScreen.setVisible(false);
     }
 
+    /**
+     * Clears all marks from the game grid and resets button styles.
+     */
     private void resetGameGrid() {
         for (javafx.scene.Node node : gameGrid.getChildren()) {
             if (node instanceof Button) {
@@ -265,17 +311,30 @@ public class Controller {
         }
     }
 
+    /**
+     * Switches the UI to the active game screen.
+     */
     private void showGameScreen() {
         loginScreen.setVisible(false);
         waitingScreen.setVisible(false);
         gameScreen.setVisible(true);
     }
 
+    /**
+     * Updates the status label with the given message.
+     *
+     * @param message the new status text
+     */
     private void setStatusLabel(String message) {
         statusLabel.setVisible(true);
         statusLabel.setText(message);
     }
 
+    /**
+     * Displays an informational alert dialog with the given message.
+     *
+     * @param message the content text of the alert
+     */
     private void showAlert(String message) {
         log.info("Showing alert: {}", message);
         Alert alert = new Alert(Alert.AlertType.INFORMATION);

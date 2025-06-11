@@ -9,6 +9,16 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.ThreadLocalRandom;
 
+/**
+ * Manages the lifecycle of a single Tic Tac Toe game between two clients.
+ * <p>
+ * Handles move logic, win/draw detection, turn notifications, and clean-up on termination.
+ * Uses simple synchronization on an internal lock to coordinate move readiness and turns.
+ * </p>
+ *
+ * @version 1.0
+ * @created April 2025
+ */
 public class GameManager implements Runnable {
     private static final Logger log = LoggerFactory.getLogger(GameManager.class);
 
@@ -30,12 +40,23 @@ public class GameManager implements Runnable {
     boolean gameRunning = true;
     // -----------------------------------------
 
+
+    /**
+     * Creates a new GameManager for two players and immediately starts the game.
+     * Randomly assigns who plays X (cross) and O (circle), initializes the board,
+     * notifies both players of the START and first turn.
+     *
+     * @param player1 one client connection
+     * @param player2 the other client connection
+     * @param server  reference to the central Server for cleanup
+     */
     public GameManager(Connection player1, Connection player2, Server server) {
         this.server = server;
-        int random = ThreadLocalRandom.current().nextInt();
 
         log.info("Designating states to players");
-        if(random % 2 == 0) {
+
+        // Randomly decide who is cross
+        if (ThreadLocalRandom.current().nextBoolean()) {
             this.playerCross = player1;
             this.playerCircle = player2;
         } else {
@@ -43,20 +64,24 @@ public class GameManager implements Runnable {
             this.playerCircle = player1;
         }
 
+        // Initialize board
         for(int i = 0; i < 3; i++) {
             for(int j = 0; j < 3; j++) {
                 board[i][j] = State.BLANK;
             }
         }
 
+        // Link back
         playerCross.setGameManager(this);
         playerCircle.setGameManager(this);
 
+        // Notify both players
         log.debug("Sending start messages to players");
         String startMessage = ServerMessageBuilder.start(playerCross.getName(), playerCircle.getName());
         playerCross.sendMessage(startMessage);
         playerCircle.sendMessage(startMessage);
 
+        // Notify first turn
         if (crossMove) {
             playerCross.sendMessage(ServerMessageBuilder.turn(playerCross.getName()));
         } else {
@@ -65,6 +90,15 @@ public class GameManager implements Runnable {
     }
 
     //https://stackoverflow.com/questions/1056316/algorithm-for-determining-tic-tac-toe-game-over
+
+    /**
+     * Checks the given move for a win condition after placing the symbol.
+     *
+     * @param x row index (0-based)
+     * @param y column index (0-based)
+     * @param s the State symbol (X or O)
+     * @return the winning State if this move wins the game; otherwise null
+     */
     private State move(int x, int y, State s) {
         if(board[x][y] == State.BLANK) {
             board[x][y] = s;
@@ -109,6 +143,15 @@ public class GameManager implements Runnable {
         return null;
     }
 
+    /**
+     * Processes a player's move request:
+     * validates turn order and coordinates, updates the board,
+     * broadcasts the move, and handles win/draw logic.
+     *
+     * @param player the Connection issuing the move
+     * @param x      row index of the move
+     * @param y      column index of the move
+     */
     public void playerMove(Connection player, int x, int y) {
         synchronized (lock) {
             if (x >= n || y >= n || x < 0 || y < 0) {
@@ -152,12 +195,25 @@ public class GameManager implements Runnable {
         }
     }
 
+    /**
+     * Sends a MOVE notification to both players.
+     *
+     * @param playerName the name of the player who moved
+     * @param x          row index of the move
+     * @param y          column index of the move
+     */
     private void sendMoveToBothPlayers(String playerName, int x, int y) {
         String moveMessage = ServerMessageBuilder.move(playerName, x, y);
         playerCross.sendMessage(moveMessage);
         playerCircle.sendMessage(moveMessage);
     }
 
+    /**
+     * Marks a player as ready; once both players are ready,
+     * notifies the main game loop to proceed.
+     *
+     * @param player the Connection that sent OK
+     */
     public void playerReady(Connection player) {
         synchronized (lock) {
             if(player == playerCross) {
@@ -174,6 +230,10 @@ public class GameManager implements Runnable {
         }
     }
 
+    /**
+     * Main game loop: waits for readiness or move completion,
+     * then notifies the appropriate player that it’s their turn.
+     */
     @Override
     public void run() {
         while (gameRunning) {
@@ -206,7 +266,11 @@ public class GameManager implements Runnable {
         if (playerCircle != null) playerCircle.setGameManager(null);
     }
 
-
+    /**
+     * Returns both participating connections.
+     *
+     * @return a Set containing the two Connection objects
+     */
     public Set<Connection> getConnections() {
         Set<Connection> connections = new HashSet<>();
         connections.add(playerCross);
@@ -214,10 +278,18 @@ public class GameManager implements Runnable {
         return connections;
     }
 
+    /**
+     * Indicates whether the game is still running.
+     *
+     * @return true if the game has not yet ended
+     */
     public synchronized boolean isGameRunning() {
         return gameRunning;
     }
 
+    /**
+     * Forces termination of the game loop and unblocks any waiting threads.
+     */
     public synchronized void terminate() {
         gameRunning = false;
         synchronized (lock) {
@@ -226,6 +298,13 @@ public class GameManager implements Runnable {
         }
     }
 
+    /**
+     * Handles a player quitting mid-game:
+     * ends the game, awards the other player a win, notifies of disconnect,
+     * cleans up references, and removes the quitting player.
+     *
+     * @param player the Connection that quit
+     */
     public void quit(Connection player) {
         log.info("User {} sent quit to GameManager", player.getName());
 
@@ -244,14 +323,6 @@ public class GameManager implements Runnable {
         if (otherPlayer != null && otherPlayer.getReady()) {
             otherPlayer.sendMessage(ServerMessageBuilder.winner(otherPlayer.getName()));
             otherPlayer.sendMessage(ServerMessageBuilder.disconnect());
-//            new Thread(() -> {
-//                try {
-//                    Thread.sleep(100);
-//                    server.addExistingConnection(otherPlayer);
-//                } catch (InterruptedException e) {
-//                    Thread.currentThread().interrupt();
-//                }
-//            }).start();
         }
 
         player.terminate();

@@ -3,11 +3,22 @@ package serverController;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
 
+/**
+ * Continuously pairs available clients into new games.
+ * <p>
+ * Monitors the server's waiting queue and, every 500ms,
+ * matches clients in pairs, removes them from the queue,
+ * creates a GameManager for each pair, and starts it.
+ * </p>
+ *
+ * <p>Runs in its own thread until terminated.</p>
+ *
+ * @version 1.0
+ * @created April 2025
+ */
 public class MatchMaker implements Runnable {
     private static final Logger log = LoggerFactory.getLogger(MatchMaker.class);
 
@@ -15,6 +26,11 @@ public class MatchMaker implements Runnable {
     private volatile boolean keepAlive;
     private Thread thread;
 
+    /**
+     * Constructs and starts the MatchMaker for the given server.
+     *
+     * @param server the Server instance whose queue is monitored
+     */
     public MatchMaker(Server server) {
         this.server = server;
         keepAlive = true;
@@ -24,6 +40,10 @@ public class MatchMaker implements Runnable {
         thread.start();
     }
 
+    /**
+     * Main loop: sleeps briefly, then attempts to match pairs from the queue.
+     * Creates and starts a new GameManager for each matched pair.
+     */
     @Override
     public void run() {
         log.info("MatchMaker started");
@@ -72,10 +92,12 @@ public class MatchMaker implements Runnable {
                 log.error("MatchMaker error", e);
             }
         }
-        log.info("MatchMaker interrupted");
+        log.info("MatchMaker terminating");
     }
 
-
+    /**
+     * Signals the MatchMaker to stop matching and terminate its thread.
+     */
     public void terminate() {
         log.info("Terminating MatchMaker");
         keepAlive = false;
