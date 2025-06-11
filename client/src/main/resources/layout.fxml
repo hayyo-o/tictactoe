@@ -2,43 +2,36 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<VBox xmlns="http://javafx.com/javafx" xmlns:fx="http://javafx.com/fxml" fx:controller="clientController.Controller" spacing="10">
-    <StackPane fx:id="viewStack">
-        <!-- Login screen -->
-        <VBox fx:id="loginScreen" alignment="CENTER">
-            <TextField fx:id="usernameField" promptText="Zadej uživatelské jméno"/>
-            <Button text="Připojit se k serveru" onAction="#handleLogin"/>
-        </VBox>
+<VBox xmlns="http://javafx.com/javafx"
+      xmlns:fx="http://javafx.com/fxml"
+      fx:controller="clientController.Controller"
+      spacing="20" alignment="CENTER" style="-fx-background-color: #f5f5f5; -fx-padding: 30">
 
-        <!-- Waiting screen -->
-        <VBox fx:id="waitingScreen" alignment="CENTER" visible="false">
-            <Label text="Čekání na druhého hráče..."/>
-        </VBox>
+    <!-- Login Screen -->
+    <VBox fx:id="loginScreen" spacing="10" alignment="CENTER">
+        <Label text="Enter your name" style="-fx-font-size: 18px; -fx-text-fill: #424242;"/>
+        <TextField fx:id="usernameField" promptText="Username" maxWidth="200"/>
+        <Button text="Play" onAction="#handleLogin" style="-fx-background-color: #1976d2; -fx-text-fill: white; -fx-font-size: 14px; -fx-padding: 6 12;"/>
+    </VBox>
 
-        <!-- Game grid -->
-        <VBox fx:id="gameScreen" alignment="CENTER" spacing="10" visible="false">
+    <!-- Waiting Screen -->
+    <VBox fx:id="waitingScreen" spacing="10" alignment="CENTER" visible="false">
+        <Label text="Waiting for opponent..." style="-fx-font-size: 16px; -fx-text-fill: #616161;"/>
+    </VBox>
 
-            <HBox spacing="20" alignment="CENTER">
-                <Label fx:id="playerLabel" text="You: " />
-                <Label fx:id="opponentLabel" text="Opponent: " />
-            </HBox>
+    <!-- Game Screen -->
+    <VBox fx:id="gameScreen" spacing="15" alignment="CENTER" visible="false">
+        <HBox spacing="20" alignment="CENTER">
+            <Label fx:id="playerLabel" text="You: " style="-fx-font-size: 16px; -fx-text-fill: #212121;"/>
+            <Label fx:id="opponentLabel" text="Opponent: " style="-fx-font-size: 16px; -fx-text-fill: #212121;"/>
+        </HBox>
 
-            <Label fx:id="statusLabel" text="Status" />
+        <Label fx:id="statusLabel" text="" style="-fx-font-size: 16px; -fx-text-fill: #424242;"/>
 
-            <GridPane fx:id="gameGrid">
-                <columnConstraints>
-                    <ColumnConstraints minWidth="40" hgrow="ALWAYS"/>
-                    <ColumnConstraints minWidth="40" hgrow="ALWAYS"/>
-                    <ColumnConstraints minWidth="40" hgrow="ALWAYS"/>
-                </columnConstraints>
-                <rowConstraints>
-                    <RowConstraints minHeight="40" vgrow="ALWAYS"/>
-                    <RowConstraints minHeight="40" vgrow="ALWAYS"/>
-                    <RowConstraints minHeight="40" vgrow="ALWAYS"/>
-                </rowConstraints>
-            </GridPane>
+        <GridPane fx:id="gameGrid" hgap="5" vgap="5" alignment="CENTER">
+            <!-- Buttons will be added dynamically -->
+        </GridPane>
 
-            <Button text="Odejít" onAction="#handleQuit"/>
-        </VBox>
-    </StackPane>
+        <Button text="Quit" onAction="#handleQuit" style="-fx-background-color: #e53935; -fx-text-fill: white; -fx-padding: 6 12;"/>
+    </VBox>
 </VBox>

@@ -8,7 +8,6 @@ import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.layout.GridPane;
-import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 
 import java.io.BufferedReader;
@@ -52,24 +51,19 @@ public class Controller {
     private String opponentSymbol;
     private boolean isMyTurn = false;
 
-    /**
-     * Initializes the controller by setting up the game grid.
-     */
     @FXML
     public void initialize() {
         log.info("Initializing game grid");
         initializeGameGrid();
     }
 
-    /**
-     * Sets up the buttons for the 3x3 game grid.
-     */
     private void initializeGameGrid() {
         gameGrid.getChildren().clear();
         for (int i = 0; i < 3; i++) {
             for (int j = 0; j < 3; j++) {
                 Button button = new Button();
                 button.setMinSize(100, 100);
+                button.setStyle("-fx-background-color: white; -fx-border-color: #b0bec5; -fx-font-size: 24px; -fx-font-weight: bold;");
                 int finalI = i, finalJ = j;
                 button.setOnAction(event -> makeMove(finalI, finalJ, button));
                 gameGrid.add(button, j, i);
@@ -77,9 +71,6 @@ public class Controller {
         }
     }
 
-    /**
-     * Handles user login and server connection.
-     */
     @FXML
     private void handleLogin() {
         username = usernameField.getText().trim();
@@ -98,24 +89,39 @@ public class Controller {
             log.info("Sent username to server: {}", username);
 
             String response = in.readLine();
-            String[] welcomeParts = response.split(" ");
-            if (ServerEnumHandler.enumFinder(welcomeParts[0]) == ServerMessages.WELCOME) {
-                showWaitingScreen();
-                new Thread(this::listenToServer).start();
-            } else {
-                showAlert("Server refused connection.");
-                log.error("Server refused connection.");
+            if (response == null) {
+                showAlert("No response from server.");
+                log.error("Null response from server.");
+                return;
             }
 
-        } catch (Exception e) {
+            String[] parts = response.split(" ");
+            ServerMessages messageType = ServerEnumHandler.enumFinder(parts[0]);
+
+            if (messageType == ServerMessages.WELCOME) {
+                showWaitingScreen();
+                new Thread(this::listenToServer).start();
+            } else if (messageType == ServerMessages.ERROR) {
+                StringBuilder errorMessage = new StringBuilder();
+                for (int i = 1; i < parts.length; i++) {
+                    errorMessage.append(parts[i]).append(" ");
+                }
+                String errorText = errorMessage.toString().trim();
+                log.warn("Login failed: {}", errorText);
+                showAlert("Error: " + errorText);
+                socket.close();
+            } else {
+                log.error("Unexpected login response: {}", response);
+                showAlert("Unexpected response from server: " + response);
+                socket.close();
+            }
+
+        } catch (IOException e) {
             log.error("Failed to connect to server.", e);
             showAlert("Failed to connect to server.");
         }
     }
 
-    /**
-     * Handles the user quitting the game and returns to the login screen.
-     */
     @FXML
     private void handleQuit() {
         try {
@@ -140,9 +146,6 @@ public class Controller {
         });
     }
 
-    /**
-     * Listens for server messages and processes them accordingly.
-     */
     private void listenToServer() {
         try {
             String line;
@@ -153,57 +156,46 @@ public class Controller {
 
                 switch (command) {
                     case START -> {
-                        Platform.runLater(this::showGameScreen);
                         String player1 = parts[1];
                         String player2 = parts[2];
-
                         opponent = player1.equals(username) ? player2 : player1;
 
+                        mySymbol = player1.equals(username) ? "X" : "O";
+                        opponentSymbol = mySymbol.equals("X") ? "O" : "X";
+
                         Platform.runLater(() -> {
-                            playerLabel.setText("You: " + username + " " + mySymbol);
-                            opponentLabel.setText("Opponent: " + opponent + " " + opponentSymbol);
-                            setStatusLabel(isMyTurn ? "Status: your turn" : "Status: opponent's turn");
+                            showGameScreen();
+                            playerLabel.setText("You: " + username + " (" + mySymbol + ")");
+                            opponentLabel.setText("Opponent: " + opponent + " (" + opponentSymbol + ")");
+                            setStatusLabel("Waiting...");
                         });
-
-                        if (username.equals(player1)) {
-                            mySymbol = "X";
-                            opponentSymbol = "O";
-                        } else {
-                            mySymbol = "O";
-                            opponentSymbol = "X";
-                        }
                     }
-
                     case YOUR_TURN -> {
                         isMyTurn = parts[1].equals(username);
                         Platform.runLater(() -> {
-                            setStatusLabel(isMyTurn ? "Status: your turn" : "Status: opponent's turn");
                             gameGrid.setDisable(!isMyTurn);
+                            setStatusLabel(isMyTurn ? "Status: Your turn" : "Status: Opponent's turn");
                         });
                     }
-
                     case MOVE -> {
                         String player = parts[1];
                         int x = Integer.parseInt(parts[2]);
                         int y = Integer.parseInt(parts[3]);
                         Platform.runLater(() -> markMove(player, x, y));
                     }
-
                     case WINNER -> {
                         String winner = parts[1];
                         Platform.runLater(() -> {
-                            showAlert(winner.equals(username) ? "You won!" : "You lost.");
-                            setStatusLabel("Status: " + winner + " won!");
                             gameGrid.setDisable(true);
+                            setStatusLabel(winner.equals(username) ? "You won!" : "You lost.");
+                            showAlert(winner.equals(username) ? "You won!" : "You lost.");
                         });
                     }
-
                     case DRAW -> Platform.runLater(() -> {
-                        showAlert("The game ended in a draw!");
-                        setStatusLabel("Status: draw");
                         gameGrid.setDisable(true);
+                        setStatusLabel("Draw");
+                        showAlert("The game ended in a draw!");
                     });
-
                     case ERROR -> {
                         StringBuilder errorMessage = new StringBuilder();
                         for (int i = 1; i < parts.length; i++) {
@@ -211,39 +203,32 @@ public class Controller {
                         }
                         Platform.runLater(() -> showAlert("Error: " + errorMessage.toString().trim()));
                     }
-
-                    case DISCONNECT -> Platform.runLater(() -> showAlert("Opponent disconnected."));
-
+                    case DISCONNECT -> Platform.runLater(() -> {
+                        showAlert("Opponent disconnected.");
+                        setStatusLabel("Opponent left the game.");
+                        gameGrid.setDisable(true);
+                    });
                     default -> log.warn("Unknown command received from server: {}", parts[0]);
                 }
             }
         } catch (IOException e) {
-            log.error("Connection to server lost.", e);
-            Platform.runLater(() -> showAlert("Connection to server lost."));
+            if (socket.isClosed()) {
+                log.info("Socket closed, listener thread exiting normally.");
+            } else {
+                log.error("Connection to server lost.", e);
+                Platform.runLater(() -> showAlert("Connection to server lost."));
+            }
         }
     }
 
-    /**
-     * Marks the move made by a player on the game grid.
-     *
-     * @param player Player who made the move
-     * @param x Row index
-     * @param y Column index
-     */
     private void markMove(String player, int x, int y) {
         Button btn = getButtonAt(x, y);
         if (btn != null && btn.getText().isEmpty()) {
             btn.setText(player.equals(username) ? mySymbol : opponentSymbol);
+            btn.setStyle("-fx-text-fill: " + (player.equals(username) ? "#1976d2" : "#616161") + "; -fx-font-size: 24px; -fx-font-weight: bold;");
         }
     }
 
-    /**
-     * Sends the player's move to the server.
-     *
-     * @param x Row index
-     * @param y Column index
-     * @param btn Button clicked
-     */
     private void makeMove(int x, int y, Button btn) {
         if (!btn.getText().isEmpty() || !isMyTurn) return;
 
@@ -251,18 +236,11 @@ public class Controller {
         log.info("Move sent: ({}, {})", x, y);
         isMyTurn = false;
         Platform.runLater(() -> {
-            setStatusLabel(isMyTurn ? "Status: your turn" : "Status: opponent's turn");
+            setStatusLabel("Status: Opponent's turn");
             gameGrid.setDisable(true);
         });
     }
 
-    /**
-     * Gets the button at the specified row and column.
-     *
-     * @param row Row index
-     * @param col Column index
-     * @return Button at the specified position or null
-     */
     private Button getButtonAt(int row, int col) {
         for (javafx.scene.Node node : gameGrid.getChildren()) {
             if (GridPane.getRowIndex(node) == row && GridPane.getColumnIndex(node) == col) {
@@ -272,50 +250,32 @@ public class Controller {
         return null;
     }
 
-    /**
-     * Displays the waiting screen while searching for an opponent.
-     */
     private void showWaitingScreen() {
         loginScreen.setVisible(false);
         waitingScreen.setVisible(true);
         gameScreen.setVisible(false);
     }
 
-    /**
-     * Resets the game grid by clearing all the buttons.
-     */
     private void resetGameGrid() {
         for (javafx.scene.Node node : gameGrid.getChildren()) {
             if (node instanceof Button) {
                 ((Button) node).setText("");
+                node.setStyle("-fx-background-color: white; -fx-border-color: #cccccc; -fx-font-size: 24px; -fx-font-weight: bold;");
             }
         }
     }
 
-    /**
-     * Displays the game screen when the game starts.
-     */
     private void showGameScreen() {
         loginScreen.setVisible(false);
         waitingScreen.setVisible(false);
         gameScreen.setVisible(true);
     }
 
-    /**
-     * Updates the status label with the current player's turn information.
-     *
-     * @param message Message to display
-     */
     private void setStatusLabel(String message) {
         statusLabel.setVisible(true);
         statusLabel.setText(message);
     }
 
-    /**
-     * Shows an alert dialog with a given message.
-     *
-     * @param message Message to display
-     */
     private void showAlert(String message) {
         log.info("Showing alert: {}", message);
         Alert alert = new Alert(Alert.AlertType.INFORMATION);

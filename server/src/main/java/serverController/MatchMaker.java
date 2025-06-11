@@ -27,20 +27,18 @@ public class MatchMaker implements Runnable {
     @Override
     public void run() {
         log.info("MatchMaker started");
-        while(keepAlive) {
+        while (keepAlive) {
             try {
                 Thread.sleep(500);
-                Set<Connection> queue;
-                synchronized (server.getQueue()) {
-                    if(server.getQueue().size() < 2) {
-                        continue;
-                    }
-                    queue = server.getQueue();
+
+                Set<Connection> queue = server.getQueue();
+                if (queue.size() < 2) {
+                    continue;
                 }
 
                 Iterator<Connection> iterator = queue.iterator();
 
-                while(iterator.hasNext() && keepAlive) {
+                while (iterator.hasNext() && keepAlive) {
                     Connection player1 = iterator.next();
                     if (!iterator.hasNext()) {
                         log.info("Odd number of players in queue");
@@ -48,7 +46,9 @@ public class MatchMaker implements Runnable {
                     }
                     Connection player2 = iterator.next();
 
-                    if (player1.getName() != null && player2.getName() != null) {
+                    if (player1.getName() != null && player2.getName() != null &&
+                            player1.getGameManager() == null && player2.getGameManager() == null) {
+
                         log.info("Matching players: {} and {}", player1.getName(), player2.getName());
 
                         server.removeConnection(player1);
@@ -60,7 +60,6 @@ public class MatchMaker implements Runnable {
                         Thread gameThread = new Thread(gameManager);
                         gameThread.setName("Game-" + player1.getName() + "-" + player2.getName());
                         gameThread.start();
-
                     }
                 }
 
@@ -75,6 +74,7 @@ public class MatchMaker implements Runnable {
         }
         log.info("MatchMaker interrupted");
     }
+
 
     public void terminate() {
         log.info("Terminating MatchMaker");

@@ -6,6 +6,8 @@ import org.slf4j.LoggerFactory;
 
 import java.net.Socket;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
 public class Server {
     private static final Logger log = LoggerFactory.getLogger(Server.class);
@@ -100,13 +102,7 @@ public class Server {
     }
     public Set<Connection> getQueue() {
         synchronized(queueLock) {
-            HashSet<Connection> readyQueue = new HashSet<>();
-            for (Connection connection : queue) {
-            if (connection.getReady()) {
-                readyQueue.add(connection);
-            }
-        }
-            return readyQueue;
+            return queue.stream().filter(Connection::getReady).collect(Collectors.toSet());
         }
     }
 

@@ -84,8 +84,10 @@ public class Connection implements Runnable {
                         server.removeConnection(this);
                     }
 
-                    return;
+                    // Free username for new connections
+                    username = null;
 
+                    return;
                 } else if (keyword == null) {
                     log.error("Incorrect incoming message");
                     sendMessage(ServerMessageBuilder.error("InvalidCommand"));
@@ -95,6 +97,10 @@ public class Connection implements Runnable {
                     gameManager.playerReady(this);
 
                 } else if (keyword == ClientMessages.MOVE) {
+                    if (gameManager == null) {
+                        sendMessage(ServerMessageBuilder.error("Game not active"));
+                        continue;
+                    }
                     if (command.length < 3) {
                         sendMessage(ServerMessageBuilder.error("InvalidMove"));
                         continue;
@@ -148,5 +154,9 @@ public class Connection implements Runnable {
 
     public boolean getReady() {
         return ready;
+    }
+
+    public GameManager getGameManager() {
+        return gameManager;
     }
 }

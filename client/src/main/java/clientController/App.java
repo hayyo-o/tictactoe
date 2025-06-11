@@ -13,7 +13,7 @@ public class App extends Application {
     public void start(Stage stage) throws Exception {
         FXMLLoader loader = new FXMLLoader(getClass().getResource("/layout.fxml"));
         Scene scene = new Scene(loader.load());
-        stage.setTitle("Piškvorky - Klient");
+        stage.setTitle("Tic Tac Toe");
         stage.setScene(scene);
         stage.show();
     }

@@ -1,0 +1,11 @@
+# IDE
+.idea/
+*.iml
+workspace.xml
+
+# Compiled class files
+*.class
+target/
+
+# Other
+*.xml.bak

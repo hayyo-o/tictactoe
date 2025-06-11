@@ -176,28 +176,36 @@ public class GameManager implements Runnable {
 
     @Override
     public void run() {
-        while(gameRunning) {
-            synchronized(lock) {
+        while (gameRunning) {
+            synchronized (lock) {
                 log.info("Waiting for player move");
-                while (wait) {
+                while (wait && gameRunning) {
                     try {
                         lock.wait();
                     } catch (InterruptedException e) {
                         Thread.currentThread().interrupt();
-                        break;
+                        log.warn("GameManager thread interrupted");
+                        return;
                     }
                 }
+
+                if (!gameRunning) break;
+
                 if (crossMove) {
                     playerCross.sendMessage(ServerMessageBuilder.turn(playerCross.getName()));
                 } else {
                     playerCircle.sendMessage(ServerMessageBuilder.turn(playerCircle.getName()));
                 }
+
                 wait = true;
             }
         }
-        playerCross.setGameManager(null);
-        playerCircle.setGameManager(null);
+
+        log.info("Game ended, clearing GameManager from players.");
+        if (playerCross != null) playerCross.setGameManager(null);
+        if (playerCircle != null) playerCircle.setGameManager(null);
     }
+
 
     public Set<Connection> getConnections() {
         Set<Connection> connections = new HashSet<>();
@@ -221,6 +229,11 @@ public class GameManager implements Runnable {
     public void quit(Connection player) {
         log.info("User {} sent quit to GameManager", player.getName());
 
+        if (!gameRunning) {
+            log.info("Game already ended. No need to process quit logic.");
+            return;
+        }
+
         terminate();
 
         Connection otherPlayer = (player == playerCross) ? playerCircle : playerCross;
@@ -230,17 +243,19 @@ public class GameManager implements Runnable {
 
         if (otherPlayer != null && otherPlayer.getReady()) {
             otherPlayer.sendMessage(ServerMessageBuilder.winner(otherPlayer.getName()));
-            new Thread(() -> {
-                try {
-                    Thread.sleep(100);
-                    server.addExistingConnection(otherPlayer);
-                } catch (InterruptedException e) {
-                    Thread.currentThread().interrupt();
-                }
-            }).start();
+            otherPlayer.sendMessage(ServerMessageBuilder.disconnect());
+//            new Thread(() -> {
+//                try {
+//                    Thread.sleep(100);
+//                    server.addExistingConnection(otherPlayer);
+//                } catch (InterruptedException e) {
+//                    Thread.currentThread().interrupt();
+//                }
+//            }).start();
         }
 
         player.terminate();
+        server.removeConnection(player);
     }
 
 }
