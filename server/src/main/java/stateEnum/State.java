@@ -7,10 +7,10 @@ package stateEnum;
  * @created April 2025
  */
 public enum State {
-    /** Empty cell. */
-    BLANK,
-    /** Cell occupied by X (cross). */
-    X,
-    /** Cell occupied by O (circle). */
-    O
+  /** Empty cell. */
+  BLANK,
+  /** Cell occupied by X (cross). */
+  X,
+  /** Cell occupied by O (circle). */
+  O
 }
