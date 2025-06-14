@@ -26,7 +26,7 @@
             <Label fx:id="opponentLabel" text="Opponent: " style="-fx-font-size: 16px; -fx-text-fill: #212121;"/>
         </HBox>
 
-        <Label fx:id="statusLabel" text="" style="-fx-font-size: 16px; -fx-text-fill: #424242;"/>
+        <Label fx:id="statusLabel" style="-fx-font-size: 16px; -fx-text-fill: #424242;"/>
 
         <GridPane fx:id="gameGrid" hgap="5" vgap="5" alignment="CENTER">
             <!-- Buttons will be added dynamically -->

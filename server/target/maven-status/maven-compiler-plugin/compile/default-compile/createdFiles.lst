@@ -1,6 +1,6 @@
 serverController\Server.class
+serverController\MatchMaker.class
 serverController\Connection.class
 serverController\Acceptor.class
 serverController\GameManager.class
 stateEnum\State.class
-serverController\MatchMaker.class

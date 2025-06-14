@@ -17,35 +17,57 @@ This project is a simple multiplayer **Tic-Tac-Toe (piškvorky)** game implement
 - Server logging to console and to file.
 - Server handles edge cases such as duplicate usernames or player disconnects.
 
-## How to Build and Run
+## Requirements
 
-### Requirements
+- **Java 17** or higher
+- **Maven 3.6+**
+- JavaFX (included in the fat JAR)
 
-- Java 17+
-- Maven 3.6+
+## How to Build
 
-### Build Instructions
+### From Source
 
-1. Clone the repository:
+1. Clone or extract the project
+2. Build with Maven:
    ```bash
-   git clone https://github.com/hayyo-o/tictactoe.git
+   mvn clean package
    ```
 
-2. Build the project with Maven:
-   ```bash
-   mvn clean install
-   ```
+### Pre-built JARs
 
-3. Run the server:
-   ```bash
-   java -jar server/target/tictactoe-server.jar
-   ```
+Pre-built executable JARs are available in the release package:
+- `server/tictactoe-server.jar`
+- `client/tictactoe-client.jar`
 
-4. Run the client:
-   ```bash
-   java -jar client/target/tictactoe-client.jar
-   ```
+## How to Run
 
+### Server
+
+```bash
+java -jar server/target/tictactoe-server.jar
+```
+
+The server will start on port 8080. Press Enter to stop.
+
+### Client
+
+```bash
+java -jar client/target/tictactoe-client.jar
+```
+
+**Note**: The client may show module-related warnings on startup, but will function normally.
+
+### Alternative: Run from Maven
+
+```bash
+# Server
+cd server
+mvn exec:java
+
+# Client
+cd client
+mvn javafx:run
+```
 ## Project Structure
 
 - `server/` – Java server-side logic and matchmaking.
@@ -67,12 +89,20 @@ This project is a simple multiplayer **Tic-Tac-Toe (piškvorky)** game implement
 
 ## Communication Protocol
 
-The application uses a custom UTF-8 text-based protocol. Each message is a line ending with `CRLF`. Messages have a keyword and space-separated parameters.
+The application uses a custom UTF-8 text-based protocol:
 
-Examples:
+### Client → Server Messages
+- `HELLO <username>` - Login request
+- `OK` - Ready confirmation (not used in current version)
+- `MOVE <x> <y>` - Make a move at position (x,y)
+- `QUIT` - Disconnect from game
 
-- `HELLO pavel` → server responds `WELCOME pavel` or `ERROR UsernameTaken`
-- `MOVE 1 2` → server broadcasts `MOVE pavel 1 2` and next `YOUR_TURN otherplayer`
-- `QUIT` → server responds with `DISCONNECT` and possibly `WINNER` for the opponent
-
-A full protocol description can be found in `Tymova_semestralni_prace_-_piskvorky.docx`.
+### Server → Client Messages
+- `WELCOME <username>` - Login accepted
+- `START <player1> <player2>` - Game started
+- `YOUR_TURN <username>` - Your turn to move
+- `MOVE <username> <x> <y>` - Move notification
+- `WINNER <username>` - Game won
+- `DRAW` - Game ended in draw
+- `ERROR <message>` - Error occurred
+- `DISCONNECT` - Opponent disconnected
